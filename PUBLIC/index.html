@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TLE Requirements Portal</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        /* (kept your CSS unchanged) */
+        body { margin: 0; min-height: 100vh; font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%); display: flex; flex-direction: column; align-items: center; }
+        .navbar { width: 100%; background: linear-gradient(90deg,#2af598,#009efd); color: #fff; padding: 18px 0; text-align: center; font-size: 1.5rem; font-weight: 700; letter-spacing: 2px; box-shadow: 0 2px 8px rgba(0,158,253,0.08); }
+        .container { background: #fff; border-radius: 16px; box-shadow: 0 6px 32px rgba(0,0,0,0.13); padding: 28px 24px 24px 24px; max-width: 430px; width: 100%; margin: 32px 0 40px 0; min-height: 320px; }
+        label { font-size: 1.1rem; color: #009efd; font-weight: 500; margin-bottom: 10px; display: block; }
+        input[type="text"], input[type="number"], input[type="password"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid #2af598; font-size: 1.1rem; margin-bottom: 14px; outline: none; transition: border-color 0.2s; }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus { border-color: #009efd; }
+        button, .btn { background: linear-gradient(90deg,#f7971e,#ffd200); color: #333; font-weight: bold; border: none; border-radius: 8px; padding: 9px 22px; font-size: 1.08rem; cursor: pointer; box-shadow: 0 2px 8px rgba(247,151,30,0.15); transition: background 0.2s; margin-bottom: 6px; }
+        button:hover, .btn:hover { background: linear-gradient(90deg,#ffd200,#f7971e); }
+        #requirements, .admin-list { margin-top: 16px; text-align: left; }
+        .requirement { background: linear-gradient(90deg,#f5576c,#f093fb); color: white; padding: 8px 14px; border-radius: 7px; margin-bottom: 8px; font-size: 1rem; box-shadow: 0 1px 6px rgba(245,87,108,0.12); }
+        .complete { background: linear-gradient(90deg,#43e97b,#38f9d7); color: white; padding: 10px 14px; border-radius: 7px; font-weight: bold; font-size: 1.11rem; box-shadow: 0 1px 6px rgba(67,233,123,0.12); display: block; margin-bottom: 8px; }
+        .notfound { background: linear-gradient(90deg,#ee9ca7,#ffdde1); color: #a94442; padding: 10px 14px; border-radius: 7px; font-weight: bold; font-size: 1.11rem; box-shadow: 0 1px 6px rgba(238,156,167,0.12); display: block; margin-bottom: 8px; }
+        .admin-list { margin-top: 20px; }
+        .admin-entry { background: linear-gradient(90deg,#B5FFFC,#FFDEE9); border-radius: 7px; padding: 10px 14px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,158,253,0.07); }
+        .admin-entry strong { color: #009efd; font-size: 1.06rem; }
+        .req-item { color: #f5576c; font-weight: 500; margin-right: 10px; }
+        .remove-btn { background: linear-gradient(90deg,#f093fb,#f5576c); color: white; border: none; border-radius: 5px; padding: 2px 10px; font-size: 0.95rem; margin-left: 6px; cursor: pointer; }
+        .remove-btn:hover { background: linear-gradient(90deg,#f5576c,#f093fb); }
+        .admin-form { margin-bottom: 18px; border-bottom: 1px dashed #009efd; padding-bottom: 14px; }
+        .admin-login-box { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,158,253,0.08); padding: 22px 24px; max-width: 340px; margin: 24px auto 0 auto; text-align: center; display: none; }
+        .admin-login-box input[type="password"] { margin-bottom: 10px; }
+        .admin-login-error { color: #f5576c; font-weight: bold; margin-bottom: 10px; }
+        .admin-action-btns { display: flex; gap: 8px; margin-bottom: 6px; }
+        @media (max-width: 600px) { .container { max-width: 97vw; } .admin-action-btns { flex-direction: column; gap: 0; } }
+    </style>
+</head>
+<body>
+    <div class="navbar">🌈 TLE Requirements Portal</div>
+    <div class="container" id="studentTab">
+        <label for="lrn">Enter Your LRN:</label>
+        <input type="text" id="lrn" placeholder="e.g., 0016">
+        <button onclick="checkRequirements()">Check Requirements</button>
+        <div id="requirements"></div>
+        <hr style="margin:30px 0 10px 0;">
+        <button id="adminLoginBtn" onclick="showAdminLogin()">Login as Admin</button>
+    </div>
+
+    <div class="admin-login-box" id="adminLoginBox">
+        <div id="adminLoginError" class="admin-login-error"></div>
+        <div>
+            <label for="adminPassword" style="color:#009efd;font-size:1rem;font-weight:500;">Admin Password:</label>
+            <input type="password" id="adminPassword" placeholder="Enter password">
+            <button onclick="loginAdmin()">Login</button>
+            <button onclick="hideAdminLogin()" style="background:linear-gradient(90deg,#ee9ca7,#ffdde1);color:#a94442;">Cancel</button>
+        </div>
+    </div>
+
+    <div class="container" id="adminTab" style="display:none;">
+        <div class="admin-form">
+            <h3 style="color:#009efd;margin-bottom:6px;">Bulk Update Student Requirements</h3>
+            <input type="text" id="adminLrn" placeholder="LRNs (e.g., 0016,0315,0097)">
+            <input type="text" id="adminReq" placeholder="Requirements (e.g., Project 1,Project 2)">
+            <div class="admin-action-btns">
+                <button onclick="addRequirementsBulk()">Add Requirements</button>
+                <button onclick="removeRequirementsBulk()" style="background:linear-gradient(90deg,#ee9ca7,#ffdde1);color:#a94442;">Remove Requirements</button>
+                <button onclick="removeStudentBulk()" style="background:linear-gradient(90deg,#ee9ca7,#ffdde1);color:#a94442;">Remove Student</button>
+            </div>
+        </div>
+        <div class="admin-list" id="adminList"></div>
+        <button onclick="logoutAdmin()" style="background:linear-gradient(90deg,#ee9ca7,#ffdde1);color:#a94442;">Logout</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Local cache (updated from server)
+        let requirementDatabase = {};
+
+        // Connect to server via Socket.IO
+        const socket = io();
+
+        // Server pushed full database on connect
+        socket.on('database', (db) => {
+            requirementDatabase = db || {};
+            saveData(); // optional cache
+            renderAdminList();
+        });
+
+        // Server notified DB update (broadcast)
+        socket.on('databaseUpdate', (db) => {
+            requirementDatabase = db || {};
+            saveData();
+            renderAdminList();
+            // If student view currently showing an LRN, refresh that view if it is visible
+            const lrnField = document.getElementById('lrn');
+            if (lrnField && document.getElementById('requirements').innerHTML) {
+                checkRequirements(); // refresh visible output
+            }
+        });
+
+        // Student result if requested specifically
+        socket.on('studentResult', ({ lrn, result }) => {
+            const requirementsDiv = document.getElementById('requirements');
+            if (result === null) {
+                requirementsDiv.innerHTML = "<span class='notfound'>LRN not found. Please check your LRN.</span>";
+            } else if (result.length === 0) {
+                requirementsDiv.innerHTML = "<span class='complete'>🎉 Congratulations! You have completed all TLE requirements.</span>";
+            } else {
+                requirementsDiv.innerHTML = "<strong style='color:#f5576c;'>Incomplete TLE Requirements:</strong><ul>" +
+                    result.map(item => `<li class='requirement'>${item}</li>`).join('') +
+                    "</ul>";
+            }
+        });
+
+        // Admin auth response
+        socket.on('adminAuth', ({ success, message }) => {
+            if (success) {
+                document.getElementById('adminLoginBox').style.display = 'none';
+                document.getElementById('studentTab').style.display = 'none';
+                document.getElementById('adminTab').style.display = 'block';
+                renderAdminList();
+            } else {
+                document.getElementById('adminLoginError').innerText = message || 'Incorrect password!';
+            }
+        });
+
+        // === Student Tab Logic ===
+        function checkRequirements() {
+            const lrn = document.getElementById('lrn').value.trim();
+            const requirementsDiv = document.getElementById('requirements');
+            requirementsDiv.innerHTML = "";
+
+            if (lrn === "") {
+                requirementsDiv.innerHTML = "<span class='notfound'>Please enter your LRN.</span>";
+                return;
+            }
+
+            // If we have DB from server, read locally; otherwise request server
+            if (Object.keys(requirementDatabase).length === 0) {
+                // ask server for result
+                socket.emit('studentCheck', lrn);
+                requirementsDiv.innerHTML = "<span class='notfound'>Loading data...</span>";
+                return;
+            }
+
+            const incomplete = requirementDatabase[lrn];
+            if (incomplete === undefined) {
+                requirementsDiv.innerHTML = "<span class='notfound'>LRN not found. Please check your LRN.</span>";
+            } else if (incomplete.length === 0) {
+                requirementsDiv.innerHTML = "<span class='complete'>🎉 Congratulations! You have completed all TLE requirements.</span>";
+            } else {
+                requirementsDiv.innerHTML = "<strong style='color:#f5576c;'>Incomplete TLE Requirements:</strong><ul>" +
+                    incomplete.map(item => `<li class='requirement'>${item}</li>`).join('') +
+                    "</ul>";
+            }
+        }
+
+        // === Admin Login Logic ===
+        function showAdminLogin() {
+            document.getElementById('adminLoginBox').style.display = 'block';
+            document.getElementById('adminLoginError').innerText = '';
+            document.getElementById('adminPassword').value = '';
+        }
+        function hideAdminLogin() {
+            document.getElementById('adminLoginBox').style.display = 'none';
+            document.getElementById('adminLoginError').innerText = '';
+            document.getElementById('adminPassword').value = '';
+        }
+        function loginAdmin() {
+            const pwd = document.getElementById('adminPassword').value;
+            socket.emit('adminLogin', { password: pwd });
+        }
+        function logoutAdmin() {
+            document.getElementById('adminTab').style.display = 'none';
+            document.getElementById('studentTab').style.display = 'block';
+        }
+
+        // === Admin Tab Logic Bulk (emit to server) ===
+        function renderAdminList() {
+            const adminList = document.getElementById('adminList');
+            adminList.innerHTML = "";
+            const keys = Object.keys(requirementDatabase).sort();
+            keys.forEach(lrn => {
+                const reqs = requirementDatabase[lrn] || [];
+                let reqHtml = reqs.length === 0 ? "<span class='complete'>All requirements completed.</span>"
+                    : reqs.map((r, idx) => `<span class='req-item'>${r} <button class='remove-btn' onclick="removeRequirement('${lrn}',${idx})">Remove</button></span>`).join('');
+                adminList.innerHTML += `<div class="admin-entry"><strong>LRN:</strong> ${lrn}<br>
+                    <div>${reqHtml}</div>
+                </div>`;
+            });
+        }
+
+        function addRequirementsBulk() {
+            const lrnInput = document.getElementById('adminLrn').value.trim();
+            const reqInput = document.getElementById('adminReq').value.trim();
+            if (lrnInput === "" || reqInput === "") return alert("Please enter LRNs and requirements.");
+
+            const lrns = lrnInput.split(',').map(l => l.trim()).filter(l => l);
+            const reqs = reqInput.split(',').map(r => r.trim()).filter(r => r);
+
+            if (lrns.length > 150) {
+                alert("You can only input up to 150 students at once.");
+                return;
+            }
+
+            socket.emit('addRequirementsBulk', { lrns, reqs });
+            document.getElementById('adminReq').value = '';
+        }
+
+        function removeRequirementsBulk() {
+            const lrnInput = document.getElementById('adminLrn').value.trim();
+            if (lrnInput === "") return alert("Please enter LRNs to remove requirements.");
+            const lrns = lrnInput.split(',').map(l => l.trim()).filter(l => l);
+
+            if (lrns.length > 150) {
+                alert("You can only input up to 150 students at once.");
+                return;
+            }
+
+            socket.emit('removeRequirementsBulk', { lrns });
+        }
+
+        function removeStudentBulk() {
+            const lrnInput = document.getElementById('adminLrn').value.trim();
+            if (lrnInput === "") return alert("Please enter LRNs to remove.");
+            const lrns = lrnInput.split(',').map(l => l.trim()).filter(l => l);
+
+            if (lrns.length > 150) {
+                alert("You can only remove up to 150 students at once.");
+                return;
+            }
+
+            if (!confirm('Remove those students entirely from the database?')) return;
+            socket.emit('removeStudentBulk', { lrns });
+        }
+
+        function removeRequirement(lrn, idx) {
+            socket.emit('removeRequirement', { lrn, idx });
+        }
+
+        // Optional: persist a local cache for offline/demo
+        function saveData() {
+            try {
+                localStorage.setItem('requirementDatabase', JSON.stringify(requirementDatabase));
+            } catch (e) { /* ignore */ }
+        }
+        function loadData() {
+            try {
+                const data = localStorage.getItem('requirementDatabase');
+                if (data && Object.keys(requirementDatabase).length === 0) {
+                    requirementDatabase = JSON.parse(data);
+                    renderAdminList();
+                }
+            } catch(e) { /* ignore */ }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
